@@ -22,19 +22,51 @@ namespace player
     /// </summary>
     public partial class MainWindow : Window
     {
+        public const int WM_HOTKEY = 0x312;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool RegisterHotKey(IntPtr hWnd, int id, ModifierKeys fsModifuers, int vk);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern short GlobalAddAtom(string lpString);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern short GlobalDeleteAtom(string nAtom);
+
         bool bPause = false;
 
         public MainWindow()
         {
             InitializeComponent();
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
             browser.Source = new Uri(text.Text);
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+
+            int atom = GlobalAddAtom("ximalaya-player");
+
+            IntPtr handle = new WindowInteropHelper(this).Handle;
+            RegisterHotKey(handle, atom, ModifierKeys.Control | ModifierKeys.Alt, 81);
+
+            HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
+            source.AddHook(WndProc);
+        }
+
+        IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handle)
+        {
+            if(msg == WM_HOTKEY)
+            {
+                playOrPause();
+            }
+            return IntPtr.Zero;
+        }
+
+        private void playOrPause()
         {
             if (bPause)
             {
@@ -48,6 +80,21 @@ namespace player
                 btn.Content = "PLAY";
                 bPause = true;
             }
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            browser.Source = new Uri(text.Text);
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            playOrPause();
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            GlobalDeleteAtom("ximalaya-player");
         }
     }
 }
