@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:player"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Closed="Window_Closed">
+        Title="MainWindow" Height="450" Width="800" Closed="Window_Closed" Closing="Window_Closing">
     <Grid RenderTransformOrigin="0.501,0.439">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>

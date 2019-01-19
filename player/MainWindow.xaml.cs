@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -37,11 +38,29 @@ namespace player
         public static extern short GlobalDeleteAtom(string nAtom);
 
         bool bPause = false;
+        private NotifyIcon notifyIcon;
 
         public MainWindow()
         {
             InitializeComponent();
+
             browser.Source = new Uri(text.Text);
+
+            this.notifyIcon = new NotifyIcon();
+            this.notifyIcon.Text = "ximalaya-player";
+            this.notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
+            this.notifyIcon.Visible = true;
+            //exit
+            System.Windows.Forms.MenuItem exit = new System.Windows.Forms.MenuItem("Exit");
+            exit.Click += new EventHandler(Close);
+            //menu
+            System.Windows.Forms.MenuItem[] childen = new System.Windows.Forms.MenuItem[] { exit };
+            notifyIcon.ContextMenu = new System.Windows.Forms.ContextMenu(childen);
+
+            this.notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler((o, e) =>
+            {
+                if (e.Button == MouseButtons.Left) this.Show(o, e);
+            });
         }
 
         protected override void OnSourceInitialized(EventArgs e)
@@ -95,6 +114,32 @@ namespace player
         private void Window_Closed(object sender, EventArgs e)
         {
             GlobalDeleteAtom("ximalaya-player");
+        }
+
+        private void Show(object sender, EventArgs e)
+        {
+            this.Visibility = System.Windows.Visibility.Visible;
+            this.ShowInTaskbar = true;
+            this.WindowState = WindowState.Normal;
+            this.Activate();
+        }
+
+        private void Hide(object sender, EventArgs e)
+        {
+            this.ShowInTaskbar = false;
+            this.Visibility = System.Windows.Visibility.Hidden;
+        }
+
+        private void Close(object sender, EventArgs e)
+        {
+            this.notifyIcon.Visible = false;
+            System.Windows.Application.Current.Shutdown();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            Hide();
         }
     }
 }
