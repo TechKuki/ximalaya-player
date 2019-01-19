@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace player
 {
@@ -37,14 +38,19 @@ namespace player
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern short GlobalDeleteAtom(string nAtom);
 
-        bool bPause = false;
+        private bool bPause = false;
         private NotifyIcon notifyIcon;
+        private DispatcherTimer dispatcherTimer;
 
         public MainWindow()
         {
             InitializeComponent();
 
             browser.Source = new Uri(text.Text);
+            dispatcherTimer = new DispatcherTimer();
+            dispatcherTimer.Tick += new EventHandler(OnTimedEvent);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 3);
+            dispatcherTimer.Start();
 
             this.notifyIcon = new NotifyIcon();
             this.notifyIcon.Text = "ximalaya-player";
@@ -140,6 +146,16 @@ namespace player
         {
             e.Cancel = true;
             Hide();
+        }
+
+        private void OnTimedEvent(object sender, EventArgs e)
+        {
+            try
+            {
+                object o = browser.InvokeScript("eval", "document.getElementsByClassName('fm-title')[0].title");
+                this.notifyIcon.Text = Convert.ToString(o);
+            }
+            catch { }
         }
     }
 }
